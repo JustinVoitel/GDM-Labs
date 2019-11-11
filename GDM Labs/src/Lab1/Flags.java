@@ -15,7 +15,7 @@ public class Flags implements PlugIn {
 	private int height = 400;
 
 	final static String[] choices = { "Schwarzes Bild", "Gelbes Bild", "Belgische Flagge", "USA Flagge",
-			"Schwarz/Rot/Blau Gradient", "Czech Flagge" };
+			"Schwarz/Rot/Blau Gradient", "Czech Flagge","Banglasesch Flagge" };
 
 	private String choice;
 
@@ -36,29 +36,33 @@ public class Flags implements PlugIn {
 		// Arrays fuer den Zugriff auf die Pixelwerte
 		int[] pixels = (int[]) ip.getPixels();
 
-//		dialog();
-//
-//		////////////////////////////////////////////////////////////////
-//		// Hier bitte Ihre Aenderungen / Erweiterungen
-//
-//		if (choice.equals("Schwarzes Bild")) {
-//			generateBlackImage(this.width, this.height, pixels);
-//		} else  if (choice.equals("Gelbes Bild")) {
-//			generateImage(255,255,0,this.width, this.height, pixels);
-//		}else  if (choice.equals("Belgische Flagge")) {
-//			generateBelgianFlag(pixels);
-//		}else  if (choice.equals("USA Flagge")) {
-//		generateUsaFlag(pixels);
-//		}else if (choice.equals("Schwarz/Rot/Blau Gradient")) {
-//		generateGradient1(pixels);
-//		}else if (choice.equals("Czech Flagge")) {
-//		generateCzechFlag(pixels);
-//		}
+		dialog();
+
+		////////////////////////////////////////////////////////////////
+		// Hier bitte Ihre Aenderungen / Erweiterungen
+
+		if (choice.equals("Schwarzes Bild")) {
+			generateBlackImage(this.width, this.height, pixels);
+		} else  if (choice.equals("Gelbes Bild")) {
+			generateImage(255,255,0,this.width, this.height, pixels);
+		}else  if (choice.equals("Belgische Flagge")) {
+			generateBelgianFlag(pixels);
+		}else  if (choice.equals("USA Flagge")) {
+		generateUsaFlag(pixels);
+		}else if (choice.equals("Schwarz/Rot/Blau Gradient")) {
+		generateGradient1(pixels);
+		}else if (choice.equals("Czech Flagge")) {
+		generateCzechFlag(pixels);
+		}else if(choice.equals("Banglasesch Flagge")){
+			generateBangladeschFlag(pixels);
+		
+		}
 
 		// generateBelgianFlag(pixels);
 		// generateUsaFlag(pixels);
 		// generateGradient1(pixels);
-		generateCzechFlag(pixels);
+		//generateCzechFlag(pixels);
+		//generateBangladeschFlag(pixels);
 		////////////////////////////////////////////////////////////////////
 
 		// neues Bild anzeigen
@@ -131,14 +135,41 @@ public class Flags implements PlugIn {
 				int pos = y * this.width + x; // Arrayposition bestimmen
 				// Werte zurueckschreiben
 				pixels[pos] = 0xFF000000 | (red << 16) | (green << 8) | blue;
-				if (red != 255) {
+				
 					red = (int) (((double) x / (double) this.width) * 255);
-				}
-				if (blue != 255) {
+				
+				
 					blue = (int) (((double) y / (double) this.height) * 255);
-				}
+				
 			}
 		}
+	}
+	
+	private void generateBangladeschFlag(int[] pixels) {
+
+		 for (int y = 0; y < height; y++) {
+	           
+	            for (int x = 0; x < width; x++) {
+	                int pos = y * width + x;
+	                int r,g,b;
+	                 
+	                int delta_y = y-(height/2);
+	                int delta_x = x-(width/2);
+	                int radius = 100;
+	                int distance = (delta_x*delta_x) + (delta_y*delta_y);
+	                 
+	                if((radius*radius)>distance) {
+	                    r = 255;
+	                    g = 0;
+	                    b = 0;  
+	                } else {
+	                    r = 4;
+	                    g = 116;
+	                    b = 68;
+	                }
+	                pixels[pos] = 0xFF000000 | (r << 16) | (g << 8) | b;
+	            }
+	        }
 	}
 
 	private void generateCzechFlag(int[] pixels) {
@@ -158,17 +189,19 @@ public class Flags implements PlugIn {
 
 			for (int x = 0; x < triWidth; x++) {
 				// top half of triangle
-				if (y < this.height/2 && x < triWidth-x) {
-
-					blue = 255;
-					int pos = y * this.width + x; // Arrayposition bestimmen
-					// Werte zurueckschreiben
-					pixels[pos] = 0xFF000000 | (red << 16) | (green << 8) | blue;
+				if (y < this.height/2) {
+					if(y>x) {
+						blue = 255;
+						int pos = y * this.width + x; // Arrayposition bestimmen
+						// Werte zurueckschreiben
+						pixels[pos] = 0xFF000000 | (red << 16) | (green << 8) | blue;
+						
+					}
 
 				}else if(y>=this.height/2){
 					
-					if(x < triWidth-(y-this.height/2)) {						
-						blue = 200;
+					if(x < (this.height-y)) {						
+						blue = 255;
 						int pos = y * this.width + x; // Arrayposition bestimmen
 						// Werte zurueckschreiben
 						pixels[pos] = 0xFF000000 | (red << 16) | (green << 8) | blue;

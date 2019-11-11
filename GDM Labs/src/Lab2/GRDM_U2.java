@@ -34,7 +34,7 @@ public class GRDM_U2 implements PlugIn {
 	
     public static void main(String args[]) {
 		//new ImageJ();
-    	IJ.open("F:\\workspaceJava\\Eclipse\\Uni\\GDM-Labs\\GDM Labs\\orchid.jpg");
+    	IJ.open("C:\\Users\\justi\\workspaceJava\\Eclipse\\Uni\\GDM-Labs\\GDM Labs\\orchid.jpg");
     	//IJ.open("Z:/Pictures/Beispielbilder/orchid.jpg");
 		
 		GRDM_U2 pw = new GRDM_U2();
@@ -79,10 +79,10 @@ public class GRDM_U2 implements PlugIn {
 		private JSlider jSliderContrast;
 		private JSlider jSliderSaturation;
 		private JSlider jSliderHue;
-		private double brightness;
-		private double contrast;
-		private double saturation;
-		private double hue;
+		private double brightness = 0;
+		private double contrast = 1;
+		private double saturation = 1;
+		private double hue = 0;
 
 		CustomWindow(ImagePlus imp, ImageCanvas ic) {
             super(imp, ic);

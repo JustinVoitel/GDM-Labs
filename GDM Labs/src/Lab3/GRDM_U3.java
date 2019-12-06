@@ -3,8 +3,15 @@ package Lab3;
 import java.awt.Panel;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.swing.JComboBox;
+
 
 import ij.IJ;
 import ij.ImagePlus;
@@ -30,7 +37,7 @@ public class GRDM_U3 implements PlugIn {
 
 	public static void main(String args[]) {
 
-		IJ.open("C:\\Users\\justi\\workspaceJava\\Eclipse\\Uni\\GDM-Labs\\GDM Labs\\Bear.jpg");
+		IJ.open("ImageJ/Bilder/Bear.jpg");
 		// IJ.open("Z:/Pictures/Beispielbilder/orchid.jpg");
 
 		GRDM_U3 pw = new GRDM_U3();
@@ -125,21 +132,18 @@ public class GRDM_U3 implements PlugIn {
 			return new int[] { r, g, b };
 		}
 
-		public int[][] getGreyColors(int count) {
-			int[][] grey = new int[count][3];
+		public List<Integer> getGreyColorList(int count) {
+			ArrayList<Integer> list= new ArrayList<>();
 
-			for (int i = 1; i < count; i++) {
-
-				double u = (double) 1 / i;
-				grey[i][0] = (int) (255 * u);
-				grey[i][1] = (int) (255 * u);
-				grey[i][2] = (int) (255 * u);
+			for (int i = 0; i < count; i++) {
+				double div = (double)i / ((double)count-1);
+				double num = 255*div;
+				list.add((int)num);
 			}
-			
-			return grey;
+			return list;
 		}
 
-		public void greyImage(int colors[][], int[] pixels) {
+		public void greyImage(List<Integer> colors, int[] pixels) {
 
 			for (int y = 0; y < height; y++) {
 				for (int x = 0; x < width; x++) {
@@ -149,36 +153,17 @@ public class GRDM_U3 implements PlugIn {
 					int r = (argb >> 16) & 0xff;
 					int g = (argb >> 8) & 0xff;
 					int b = argb & 0xff;
-
-					double yuv[] = convertToYUV(r, g, b);
-
-					double Y = yuv[0];
-					double U = yuv[1];
-					double V = yuv[2];
-
-					int rgb[] = convertToRGB(Y, U, V);
 					
-//					for(int k = 0;k<3;k++) {
-//						double avg = (r + g + b) / 3;
-//						double distance = Math.abs(colors[0][1] - avg);
-//						int idx = 0;
-//						for (int i = 0; i < colors.length; i++) {
-//							int cdistance = (int) Math.abs(grey[i] - avg);
-//							if (cdistance < distance) {
-//								idx = i;
-//								distance = cdistance;
-//							}
-//						}
-//						rgb[k] = (int) colors[idx];
-//						
-//					}
+					int d = (r+g+b)/3;
+					
+					int inx = colors.stream().reduce(0,(acc, v) -> Math.abs(d - acc)<Math.abs(d-v) ? acc : v);
 
+					r = inx;
+					g = inx;
+					b = inx;
 
-//					rgb[1] = (int) grey[idx];
-//					rgb[2] = (int) grey[idx];
-
-					pixels[pos] = (0xFF << 24) | (cutOverflow(rgb[0]) << 16) | (cutOverflow(rgb[1]) << 8)
-							| cutOverflow(rgb[2]);
+					pixels[pos] = (0xFF << 24) | (cutOverflow(r) << 16) | (cutOverflow(g) << 8)
+							| cutOverflow(b);
 				}
 			}
 		}
@@ -279,15 +264,15 @@ public class GRDM_U3 implements PlugIn {
 			}
 
 			if (method.equals(Mode.BITONAR_SW)) {
-				greyImage(getGreyColors(2), pixels);
+				greyImage(getGreyColorList(2), pixels);
 			}
 
 			if (method.equals(Mode.BITONAR_SW_5)) {
-				greyImage(getGreyColors(5), pixels);
+				greyImage(getGreyColorList(5), pixels);
 			}
 
 			if (method.equals(Mode.BITONAR_SW_10)) {
-				greyImage(getGreyColors(10), pixels);
+				greyImage(getGreyColorList(10), pixels);
 			}
 
 			if (method.equals(Mode.BITONAR_HZ)) {
@@ -303,20 +288,11 @@ public class GRDM_U3 implements PlugIn {
 						int g = (argb >> 8) & 0xff;
 						int b = argb & 0xff;
 
-						double yuv[] = convertToYUV(r, g, b);
-
-						double Y = yuv[0];
-						double U = yuv[1];
-						double V = yuv[2];
-
-						int rgb[] = convertToRGB(Y, U, V);
-
-						double echtWert = (rgb[0] + rgb[1] + rgb[2]) / 3;
+						double echtWert = (r+b+g) / 3;
 						int value = (int) echtWert+quant_error > 128 ? 255 : 0;
 
-						quant_error = (int) (value - echtWert);
+						quant_error = (int) (echtWert - value);
 						
-
 						pixels[pos] = (0xFF << 24) | (cutOverflow(value) << 16) | (cutOverflow(value) << 8)
 								| cutOverflow(value);
 					}
@@ -324,7 +300,6 @@ public class GRDM_U3 implements PlugIn {
 			}
 
 			if (method.equals(Mode.SEPIA)) {
-				double sepiaIntensity = 0.7;
 				for (int y = 0; y < height; y++) {
 					for (int x = 0; x < width; x++) {
 						int pos = y * width + x;
@@ -333,27 +308,36 @@ public class GRDM_U3 implements PlugIn {
 						int r = (argb >> 16) & 0xff;
 						int g = (argb >> 8) & 0xff;
 						int b = argb & 0xff;
-
-						double yuv[] = convertToYUV(r, g, b);
-
-						double Y = yuv[0];
-						double U = yuv[1];
-						double V = yuv[2];
-
-						int rgb[] = convertToRGB(Y, U, V);
-
-						rgb[0] = (int) ((int) (0.393 * rgb[0] + 0.769 * rgb[1] + 0.189 * rgb[2]) * sepiaIntensity);
-						rgb[1] = (int) ((int) (0.349 * rgb[0] + 0.686 * rgb[1] + 0.168 * rgb[2]) * sepiaIntensity);
-						rgb[2] = (int) ((int) (0.272 * rgb[0] + 0.534 * rgb[1] + 0.131 * rgb[2]) * sepiaIntensity);
-
-						pixels[pos] = (0xFF << 24) | (cutOverflow(rgb[0]) << 16) | (cutOverflow(rgb[1]) << 8)
-								| cutOverflow(rgb[2]);
+						
+						int d = (r+g+b)/3;
+						
+						r = (6/4)*d;
+						g = d;
+						b = (int) ((3/3.9)*d);
+						
+						
+						pixels[pos] = (0xFF << 24) | (cutOverflow(r) << 16) | (cutOverflow(g) << 8)
+								| cutOverflow(b);
+						
+						
+						
 					}
 				}
 			}
 
 			if (method.equals(Mode.SIX_COLORS)) {
-
+				
+				List<List<Integer>> colors = new ArrayList<>(Arrays.asList(
+						Arrays.asList(16, 24, 26),
+						Arrays.asList(46, 132, 179),
+						Arrays.asList(54, 99, 130),
+						Arrays.asList(134, 94, 78),
+						Arrays.asList(231, 227, 224),
+						Arrays.asList(92, 91, 87)
+				));
+				
+				List<Integer> colorsAvg = colors.stream().map(e-> (e.get(0)+e.get(1)+e.get(2))/3).collect(Collectors.toList());
+				
 				for (int y = 0; y < height; y++) {
 					for (int x = 0; x < width; x++) {
 						int pos = y * width + x;
@@ -362,21 +346,20 @@ public class GRDM_U3 implements PlugIn {
 						int r = (argb >> 16) & 0xff;
 						int g = (argb >> 8) & 0xff;
 						int b = argb & 0xff;
-
-						double yuv[] = convertToYUV(r, g, b);
-
-						double Y = yuv[0];
-						double U = yuv[1];
-						double V = yuv[2];
-
-						int rgb[] = convertToRGB(Y, U, V);
-
-//						rgb[0] = Math.abs(rgb[0]-255);
-//						rgb[1] = Math.abs(rgb[1]-255);
-//						rgb[2] = Math.abs(rgb[2]-255);
-
-						pixels[pos] = (0xFF << 24) | (cutOverflow(rgb[0]) << 16) | (cutOverflow(rgb[1]) << 8)
-								| cutOverflow(rgb[2]);
+												
+						int d = (r+g+b)/3;
+						
+						int col = colorsAvg.stream().reduce(0,(acc, v) -> Math.abs(d - acc)<Math.abs(d-v) ? acc : v);						
+						
+						int index = colorsAvg.indexOf(col);
+						
+						if(index>=0) {
+							r = colors.get(index).get(0);
+							g = colors.get(index).get(1);
+							b = colors.get(index).get(2);
+						}
+						pixels[pos] = (0xFF << 24) | (cutOverflow(r) << 16) | (cutOverflow(g) << 8)
+								| cutOverflow(b);
 					}
 				}
 			}

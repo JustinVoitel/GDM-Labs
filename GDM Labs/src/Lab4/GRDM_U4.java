@@ -200,7 +200,7 @@ public class GRDM_U4 implements PlugInFilter {
 						
 						double dist = Math.sqrt(Math.pow(x-midX,2)+Math.pow(y-midY, 2));
 						
-						if(dist >d) {
+						if(dist <d) {
 							pixels_Erg[pos] = pixels_A[pos];
 						}else {
 							pixels_Erg[pos] = pixels_B[pos];

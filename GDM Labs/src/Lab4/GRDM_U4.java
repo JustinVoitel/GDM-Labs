@@ -69,7 +69,7 @@ public class GRDM_U4 implements PlugInFilter {
 		ImagePlus Erg = NewImage.createRGBImage("Ergebnis", width, height, length, NewImage.FILL_BLACK);
 		ImageStack stack_Erg = Erg.getStack();
 
-		int methode = 5;
+		int methode = 6;
 		// Dialog fuer Auswahl des Ueberlagerungsmodus
 		if (!skipDialog) {
 
@@ -161,18 +161,17 @@ public class GRDM_U4 implements PlugInFilter {
 					if (methode == 5) {
 						int innerLimit = 50;
 						int outerlimit = 65;
-						double yuvA[] = convertToYUV(rA, gA, bA);
 						double yuvK[] = convertToYUV(240, 176, 64);
-
 						double uK = yuvK[1], vK = yuvK[2];
+
+						double yuvA[] = convertToYUV(rA, gA, bA);
 						double uA = yuvA[1], vA = yuvA[2];
 
 						double keyToADist = Math.sqrt(
 								Math.pow(((double) uA - (double) uK), 2) + Math.pow(((double) vA - (double) vK), 2));
 
-						// System.out.println("dist: "+keyToADist);
 
-						// im ring -> ausblenden
+						// im außen ring -> A proportional ausblenden
 						if (keyToADist < outerlimit && keyToADist > innerLimit) {
 							double proportion = 1-((keyToADist-innerLimit)/innerLimit-outerlimit);
 							//System.out.println(1-((keyToADist-innerLimit)/20));
@@ -182,15 +181,31 @@ public class GRDM_U4 implements PlugInFilter {
 							int b = (int) ((bB * ((double) proportion / 100)) + (bA * (100 - (double) proportion) / 100));
 
 							pixels_Erg[pos] = 0xFF000000 + ((r & 0xff) << 16) + ((g & 0xff) << 8) + (b & 0xff);
-						} else if (keyToADist < innerLimit) {
+						} else 
+						//	im inneren ring -> A ausblenden & B anzeigen)
+						if (keyToADist < innerLimit) {
 							pixels_Erg[pos] = pixels_B[pos];
-						} else {
+						} else
+						//außerhalb des ringes ->A anzeigen & B ausblenden
+						{
 							pixels_Erg[pos] = pixels_A[pos];
 						}
 					}
 
 					if (methode == 6) {
-						//TODO:
+						int d = 70;
+						int midX = width/2;
+						int midY = height/2;
+						
+						
+						double dist = Math.sqrt(Math.pow(x-midX,2)+Math.pow(y-midY, 2));
+						
+						if(dist >d) {
+							pixels_Erg[pos] = pixels_A[pos];
+						}else {
+							pixels_Erg[pos] = pixels_B[pos];
+						}
+						
 					}
 
 				}
